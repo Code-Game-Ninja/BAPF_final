@@ -323,12 +323,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw new Error(`Account locked due to too many failed attempts. Try again in ${mins} minute(s).`);
           }
           // Lock expired — reset via SECURITY DEFINER RPC (fire-and-forget)
-          supabase.rpc("clear_login_attempts", { attempt_email: emailKey }).catch(() => {});
+          await supabase.rpc("clear_login_attempts", { attempt_email: emailKey });
         }
 
         if (current >= maxAttempts && maxAttempts > 0) {
           // Track attempt to trigger lock via SECURITY DEFINER RPC
-          supabase.rpc("track_login_attempt", { attempt_email: emailKey }).catch(() => {});
+          await supabase.rpc("track_login_attempt", { attempt_email: emailKey });
           throw new Error("Account locked due to too many failed attempts. Try again in 15 minutes.");
         }
       } catch (e) {
@@ -343,7 +343,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         // Login failed — track attempt via SECURITY DEFINER RPC (fire-and-forget)
-        supabase.rpc("track_login_attempt", { attempt_email: emailKey }).catch(() => {});
+        await supabase.rpc("track_login_attempt", { attempt_email: emailKey });
         throw new Error(error.message);
       }
 
@@ -381,7 +381,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Successful customer login: clear attempts and keep session for redirect handoff.
-      void supabase.rpc("clear_login_attempts", { attempt_email: emailKey }).catch(() => {});
+      await supabase.rpc("clear_login_attempts", { attempt_email: emailKey });
 
       setSession(data.session);
       setUser(null);
