@@ -23,6 +23,8 @@
     "db:migrate:phase4": "node scripts/run-migrations.mjs --phase 4"
   },
   "dependencies": {
+    "@azure/ai-form-recognizer": "^5.1.0",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
     "@opentelemetry/core": "^2.6.1",
     "@sentry/nextjs": "^10.38.0",

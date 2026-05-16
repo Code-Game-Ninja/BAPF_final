@@ -37,7 +37,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   // "Strict-Transport-Security":
   //   "max-age=31536000; includeSubDomains; preload",
-  "Content-Security-Policy":
+  /* "Content-Security-Policy":
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://vercel.live",
@@ -50,7 +50,7 @@ const SECURITY_HEADERS: Record<string, string> = {
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-    ].join("; "),
+    ].join("; "), */
 };
 
 // ---- Paths ----
@@ -99,6 +99,10 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  if (isDev) {
+    console.debug(`[Proxy] Request: ${pathname} (Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL})`);
+  }
 
   // ---- Root redirect ----
   // If logged-in cookie exists, go to dashboard; otherwise go to login.

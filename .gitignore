@@ -30,6 +30,7 @@ dist/
 # =============================================================================
 .env
 .env.local
+.env.vercel
 .env.development.local
 .env.test.local
 .env.production.local
@@ -223,3 +224,4 @@ REORGANIZATION_SUMMARY.md
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+.vercel

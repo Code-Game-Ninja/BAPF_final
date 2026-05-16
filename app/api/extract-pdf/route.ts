@@ -13,6 +13,8 @@ import { requireAuth, isAuthError, authError } from "@/lib/api/auth-middleware";
 import { protect } from "@/lib/api/protect";
 import { trackAPIError, measurePerformance, trackUserAction } from "@/lib/monitoring/error-tracker";
 import { logger } from "@/lib/utils/logger";
+import { analyzeDocument } from "@/lib/services/azure-document.service";
+import { extractStructuredData } from "@/lib/services/gemini.service";
 
 // Default to deployed PDF extractor - set PDF_EXTRACTOR_API_URL env to override
 const EXTERNAL_API_URL =
@@ -54,24 +56,49 @@ export async function POST(req: NextRequest) {
 
     // Measure extraction performance
     const result = await measurePerformance('pdf-extraction', async () => {
-      // Forward the file to the external API
-      // The external API expects the field name "pdf" (multer config)
+      // Check if direct Azure integration is configured
+      const azureEndpoint = process.env.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT;
+      const azureKey = process.env.AZURE_DOCUMENT_INTELLIGENCE_KEY;
+      const useGemini = process.env.GOOGLE_GEMINI_API_KEY;
+
+      if (azureEndpoint && azureKey) {
+        logger.log('[extract-pdf] Using direct Azure Document Intelligence integration');
+        const azureResult = await analyzeDocument(file);
+        
+        let structuredData = null;
+        if (useGemini && azureResult.content) {
+          logger.log('[extract-pdf] Using Gemini for intelligent structured extraction');
+          structuredData = await extractStructuredData(azureResult.content);
+        }
+
+        return { 
+          text: azureResult.content, 
+          structuredData,
+          debug: {
+            pages: azureResult.pages?.length,
+            tables: azureResult.tables?.length,
+            source: 'azure-direct',
+            intelligent: !!structuredData
+          }
+        };
+      }
+
+      // Fallback to external API
+      logger.log(`[extract-pdf] Falling back to external API: ${EXTERNAL_API_URL}`);
+      
       const externalForm = new FormData();
       externalForm.append("pdf", file);
 
-      logger.log(`[extract-pdf] Forwarding to: ${EXTERNAL_API_URL}`);
-      
       const externalRes = await fetch(EXTERNAL_API_URL, {
         method: "POST",
         body: externalForm,
-        signal: AbortSignal.timeout(90_000), // 90s timeout for OCR processing
+        signal: AbortSignal.timeout(90_000),
       });
 
       if (!externalRes.ok) {
         const errText = await externalRes.text().catch(() => "");
         const error = new Error(`External PDF extractor returned ${externalRes.status}`);
         
-        // Track external API error
         trackAPIError('/api/extract-pdf', error, {
           method: 'POST',
           params: { externalUrl: EXTERNAL_API_URL }
@@ -86,14 +113,11 @@ export async function POST(req: NextRequest) {
       const data = await externalRes.json();
       logger.log('[extract-pdf] External API response:', data.success ? 'SUCCESS' : 'FAILED');
 
-      // The external API returns:
-      // { success, data: { combinedText, structuredData: { policyDetails, customerDetails }, ... } }
       const text =
         typeof data === "string"
           ? data
           : data.data?.combinedText || data.data?.text || data.text || data.content || data.result || "";
 
-      // Pass through Gemini-extracted structured data if available
       const structuredData = data.data?.structuredData || null;
 
       return { text, structuredData };

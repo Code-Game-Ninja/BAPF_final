@@ -301,11 +301,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const doLogin = async (email: string, password: string): Promise<"staff" | "customer"> => {
       // ── Check login attempt limit (best-effort — don't block login if check fails) ──
       const emailKey = email.toLowerCase();
+      console.log("[auth] doLogin: Supabase URL =", (supabase as any).supabaseUrl);
       try {
+        console.log(`[auth] doLogin: checking limits for ${emailKey}`);
         const [attemptResult, maxResult] = await Promise.all([
           supabase.from("login_attempts").select("*").eq("email", emailKey).maybeSingle(),
           supabase.from("system_config").select("value").eq("key", "max_login_attempts").maybeSingle(),
         ]);
+        console.log("[auth] doLogin: limit check results:", { attemptResult, maxResult });
+        
         const parsed = maxResult.data ? parseInt(String(maxResult.data.value), 10) : NaN;
         const maxAttempts = Number.isNaN(parsed) || parsed <= 0 ? 5 : parsed;
         const current = attemptResult.data?.count || 0;
@@ -319,12 +323,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw new Error(`Account locked due to too many failed attempts. Try again in ${mins} minute(s).`);
           }
           // Lock expired — reset via SECURITY DEFINER RPC (fire-and-forget)
-          supabase.rpc("clear_login_attempts", { attempt_email: emailKey }).then();
+          supabase.rpc("clear_login_attempts", { attempt_email: emailKey }).catch(() => {});
         }
 
         if (current >= maxAttempts && maxAttempts > 0) {
           // Track attempt to trigger lock via SECURITY DEFINER RPC
-          supabase.rpc("track_login_attempt", { attempt_email: emailKey }).then();
+          supabase.rpc("track_login_attempt", { attempt_email: emailKey }).catch(() => {});
           throw new Error("Account locked due to too many failed attempts. Try again in 15 minutes.");
         }
       } catch (e) {
@@ -333,11 +337,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn("[auth] login attempt check failed, proceeding:", e);
       }
 
+      console.log("[auth] doLogin: calling signInWithPassword...");
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log("[auth] doLogin: signInWithPassword result:", { data, error });
 
       if (error) {
         // Login failed — track attempt via SECURITY DEFINER RPC (fire-and-forget)
-        supabase.rpc("track_login_attempt", { attempt_email: emailKey }).then();
+        supabase.rpc("track_login_attempt", { attempt_email: emailKey }).catch(() => {});
         throw new Error(error.message);
       }
 
@@ -375,7 +381,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Successful customer login: clear attempts and keep session for redirect handoff.
-      void supabase.rpc("clear_login_attempts", { attempt_email: emailKey });
+      void supabase.rpc("clear_login_attempts", { attempt_email: emailKey }).catch(() => {});
 
       setSession(data.session);
       setUser(null);

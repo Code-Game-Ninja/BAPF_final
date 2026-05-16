@@ -28,6 +28,34 @@ BEGIN
 END $$;
 
 -- ──────────────────────────────────────────────────────────────
+-- STEP 1b — Auth Identities (required for email/password login)
+-- ──────────────────────────────────────────────────────────────
+INSERT INTO auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+VALUES
+  (
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    'admin@bpaf.com',
+    '{"sub":"00000000-0000-0000-0000-000000000001","email":"admin@bpaf.com","email_verified":true}'::jsonb,
+    'email', NOW(), NOW(), NOW()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000002',
+    'manager@bpaf.com',
+    '{"sub":"00000000-0000-0000-0000-000000000002","email":"manager@bpaf.com","email_verified":true}'::jsonb,
+    'email', NOW(), NOW(), NOW()
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    '00000000-0000-0000-0000-000000000003',
+    'employee@bpaf.com',
+    '{"sub":"00000000-0000-0000-0000-000000000003","email":"employee@bpaf.com","email_verified":true}'::jsonb,
+    'email', NOW(), NOW(), NOW()
+  )
+ON CONFLICT DO NOTHING;
+
+-- ──────────────────────────────────────────────────────────────
 -- STEP 2 — Branches & User Profiles
 -- ──────────────────────────────────────────────────────────────
 INSERT INTO branches (id, name, address, city, state, pincode, phone, is_active)
@@ -46,31 +74,31 @@ ON CONFLICT (id) DO NOTHING;
 -- ──────────────────────────────────────────────────────────────
 INSERT INTO customers (id, uid, name, email, phone, city, status, customer_type, created_by)
 VALUES
-  ('c0000000-0000-0000-0000-000000000001', 'CUST-1001', 'Amit Malhotra', 'amit.m@example.com', '+91 98100 12345', 'Delhi', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
-  ('c0000000-0000-0000-0000-000000000002', 'CUST-1002', 'Sunita Rao', 'sunita.rao@example.com', '+91 98200 54321', 'Mumbai', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
-  ('c0000000-0000-0000-0000-000000000003', 'CUST-1003', 'Vikram Singh', 'v.singh@example.com', '+91 98300 98765', 'Bangalore', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
-  ('c0000000-0000-0000-0000-000000000004', 'CUST-1004', 'Deepak Jain', 'deepak.jain@example.com', '+91 98400 11223', 'Pune', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
-  ('c0000000-0000-0000-0000-000000000005', 'CUST-1005', 'Anjali Gupta', 'anjali.g@example.com', '+91 98500 44556', 'Chennai', 'active', 'individual', '00000000-0000-0000-0000-000000000001')
+  ('c0000001-0000-0000-0000-000000000001', 'CUST-1001', 'Amit Malhotra', 'amit.m@example.com', '9810012345', 'Delhi', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
+  ('c0000002-0000-0000-0000-000000000002', 'CUST-1002', 'Sunita Rao', 'sunita.rao@example.com', '9820054321', 'Mumbai', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
+  ('c0000003-0000-0000-0000-000000000003', 'CUST-1003', 'Vikram Singh', 'v.singh@example.com', '9830098765', 'Bangalore', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
+  ('c0000004-0000-0000-0000-000000000004', 'CUST-1004', 'Deepak Jain', 'deepak.jain@example.com', '9840011223', 'Pune', 'active', 'individual', '00000000-0000-0000-0000-000000000001'),
+  ('c0000005-0000-0000-0000-000000000005', 'CUST-1005', 'Anjali Gupta', 'anjali.g@example.com', '9850044556', 'Chennai', 'active', 'individual', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT (id) DO NOTHING;
 
 -- ──────────────────────────────────────────────────────────────
 -- STEP 4 — Policies
 -- ──────────────────────────────────────────────────────────────
-INSERT INTO policies (id, policy_number, policy_type, customer_id, customer_name, insurer_name, premium_amount, sum_insured, status, start_date, end_date, created_by, branch_id)
+INSERT INTO policies (id, policy_number, policy_type, customer_id, customer_name, insurer_name, premium_amount, sum_insured, status, start_date, end_date, created_by, assigned_to, branch_id)
 VALUES
-  ('p0000000-0000-0000-0000-000000000001', 'POL-MOT-12345', 'motor', 'c0000000-0000-0000-0000-000000000001', 'Amit Malhotra', 'HDFC ERGO', 15000, 500000, 'active', NOW() - INTERVAL '3 months', NOW() + INTERVAL '9 months', '00000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001'),
-  ('p0000000-0000-0000-0000-000000000002', 'POL-HEA-67890', 'health', 'c0000000-0000-0000-0000-000000000002', 'Sunita Rao', 'Star Health', 25000, 1000000, 'active', NOW() - INTERVAL '6 months', NOW() + INTERVAL '6 months', '00000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001'),
-  ('p0000000-0000-0000-0000-000000000003', 'POL-LIF-11223', 'life', 'c0000000-0000-0000-0000-000000000003', 'Vikram Singh', 'LIC', 45000, 5000000, 'active', NOW() - INTERVAL '1 month', NOW() + INTERVAL '11 months', '00000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001')
+  ('a0000001-0000-0000-0000-000000000001', 'POL-MOT-12345', 'motor', 'c0000001-0000-0000-0000-000000000001', 'Amit Malhotra', 'HDFC ERGO', 15000, 500000, 'active', NOW() - INTERVAL '3 months', NOW() + INTERVAL '9 months', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001'),
+  ('a0000002-0000-0000-0000-000000000002', 'POL-HEA-67890', 'health', 'c0000002-0000-0000-0000-000000000002', 'Sunita Rao', 'Star Health', 25000, 1000000, 'active', NOW() - INTERVAL '6 months', NOW() + INTERVAL '6 months', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001'),
+  ('a0000003-0000-0000-0000-000000000003', 'POL-LIF-11223', 'life', 'c0000003-0000-0000-0000-000000000003', 'Vikram Singh', 'LIC', 45000, 5000000, 'active', NOW() - INTERVAL '1 month', NOW() + INTERVAL '11 months', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001')
 ON CONFLICT (id) DO NOTHING;
 
 -- ──────────────────────────────────────────────────────────────
 -- STEP 5 — Sales Leads
 -- ──────────────────────────────────────────────────────────────
-INSERT INTO sales_leads (customer_name, email, mobile, status, source, assigned_to, created_by)
+INSERT INTO sales_leads (lead_number, customer_name, email, mobile, status, source, assigned_to, created_by)
 VALUES
-  ('Rohan Kapoor', 'rohan.k@example.com', '+91 99000 11111', 'new', 'online', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001'),
-  ('Suresh Iyer', 'suresh.i@example.com', '+91 99000 22222', 'contacted', 'referral', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001'),
-  ('Pooja Bhatt', 'pooja.b@example.com', '+91 99000 33333', 'proposal_sent', 'cold_call', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001')
+  (next_lead_uid(), 'Rohan Kapoor', 'rohan.k@example.com', '9900011111', 'new', 'online', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001'),
+  (next_lead_uid(), 'Suresh Iyer', 'suresh.i@example.com', '9900022222', 'contacted', 'referral', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001'),
+  (next_lead_uid(), 'Pooja Bhatt', 'pooja.b@example.com', '9900033333', 'proposal_sent', 'telecall', '00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001')
 ON CONFLICT DO NOTHING;
 
 -- ──────────────────────────────────────────────────────────────
