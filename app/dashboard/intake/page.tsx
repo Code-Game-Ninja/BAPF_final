@@ -60,6 +60,12 @@ interface ExtractionResult {
     lifeDetails?: Record<string, unknown>;
     healthDetails?: Record<string, unknown>;
     commercialDetails?: Record<string, unknown>;
+    members?: Array<{
+      name: string;
+      dob?: string | null;
+      age?: string | null;
+      relation?: string | null;
+    }>;
   };
 }
 
@@ -368,7 +374,7 @@ export default function IntakeDeskPage() {
         risk_details: comd.riskDetails || prev.risk_details || "",
         occupancy: comd.occupancy || prev.occupancy || "",
         fire_si: comd.fireSi ? comd.fireSi.toString() : prev.fire_si || "",
-        members: structuredData.members || prev.members || [],
+        members: structuredData?.members || prev.members || [],
       }));
 
       nextStep();
