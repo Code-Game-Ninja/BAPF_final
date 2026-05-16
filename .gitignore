@@ -225,3 +225,6 @@ REORGANIZATION_SUMMARY.md
 .yarn/install-state.gz
 .pnp.*
 .vercel
+
+
+/scripts
