@@ -422,113 +422,69 @@ export default function IntakeDeskPage() {
 
       if (!finalCustomerId) throw new Error("Invalid customer mapping");
 
-      let policyId: string | undefined;
-      try {
-        const policyTypeMap: Record<string, string> = {
-          'motor': 'motor',
-          'health': 'health',
-          'life': 'life',
-          'commercial': 'fire',
-        };
-        const policyType = policyTypeMap[selection.category || ''] || 'other';
+      // 1. Determine the mapped Policy Type (for internal database compatibility)
+      const policyTypeMap: Record<string, string> = {
+        'motor': 'motor',
+        'health': 'health',
+        'life': 'life',
+        'commercial': 'fire',
+      };
+      const dbLob = policyTypeMap[selection.category || ''] || 'other';
+      
+      // 2. Handle File Upload if present
+      let policyDocumentUrl: string | undefined;
+      if (uploadedFile) {
+        const timestamp = Date.now();
+        const fileName = `${productData.policy_no || timestamp}_${uploadedFile.name}`;
+        const storagePath = `intake-drafts/${finalCustomerId}/${fileName}`;
         
-        let policyDocumentUrl: string | undefined;
-        if (uploadedFile) {
-          const timestamp = Date.now();
-          const fileName = `${productData.policy_no || timestamp}_${uploadedFile.name}`;
-          const storagePath = `policies/${finalCustomerId}/${fileName}`;
-          
-          const { data: { session } } = await supabase.auth.getSession();
-          const authToken = session?.access_token;
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
 
-          const uploadResponse = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
-            },
-            body: JSON.stringify({
-              path: storagePath.replace(/[^a-zA-Z0-9.\-_/]/g, '_'),
-              mimeType: uploadedFile.type || 'application/pdf',
-              size: uploadedFile.size,
-            }),
-          });
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+          },
+          body: JSON.stringify({
+            path: storagePath.replace(/[^a-zA-Z0-9.\-_/]/g, '_'),
+            mimeType: uploadedFile.type || 'application/pdf',
+            size: uploadedFile.size,
+          }),
+        });
 
-          if (!uploadResponse.ok) throw new Error("Failed to get upload URL");
+        if (!uploadResponse.ok) throw new Error("Failed to get upload URL");
 
-          const { uploadUrl, downloadUrl } = await uploadResponse.json() as { uploadUrl: string; downloadUrl: string };
+        const { uploadUrl, downloadUrl } = await uploadResponse.json() as { uploadUrl: string; downloadUrl: string };
 
-          const fileUploadResponse = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': uploadedFile.type, 'x-upsert': 'true' },
-            body: uploadedFile,
-          });
+        const fileUploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': uploadedFile.type, 'x-upsert': 'true' },
+          body: uploadedFile,
+        });
 
-          if (!fileUploadResponse.ok) throw new Error("Failed to upload file");
-
-          policyDocumentUrl = downloadUrl;
-        }
-        
-        const policyPayload = {
-          customer_id: finalCustomerId,
-          customer_name: productData.name,
-          policy_number: productData.policy_no || `TEMP-${Date.now()}`,
-          policy_type: policyType as PolicyType,
-          insurer_name: productData.insurer || 'Unknown',
-          premium_amount: parseFloat(productData.premium || "0") || 0,
-          sum_insured: parseFloat(productData.sum_assured || "0") || 0,
-          start_date: productData.start_date || new Date().toISOString().split('T')[0],
-          end_date: productData.end_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: 'active' as const,
-          assigned_to: user.id,
-          created_by: user.id,
-          lockedForEmployee: false,
-          verification_confirmed: false,
-          vehicle_number: selection.category === 'motor' ? productData.reg_number : undefined,
-          pdf_url: policyDocumentUrl,
-        };
-        
-        let existingPolicy = null;
-        if (productData.policy_no) {
-          const { data } = await supabase
-            .from('policies')
-            .select('id')
-            .eq('policy_number', productData.policy_no)
-            .maybeSingle();
-          existingPolicy = data;
-        } else {
-          const { data } = await supabase
-            .from('policies')
-            .select('id, policy_number')
-            .eq('customer_id', finalCustomerId)
-            .eq('policy_type', policyType)
-            .eq('insurer_name', policyPayload.insurer_name)
-            .eq('start_date', policyPayload.start_date)
-            .limit(1)
-            .maybeSingle();
-            
-          if (data) {
-            existingPolicy = data;
-            policyPayload.policy_number = data.policy_number;
-          }
-        }
-
-        if (existingPolicy) {
-          await policyService.update(existingPolicy.id, policyPayload as Partial<Policy>);
-          policyId = existingPolicy.id;
-        } else {
-          const policy = await policyService.create(policyPayload as Omit<Policy, 'id' | 'created_at' | 'updated_at'>);
-          policyId = policy.id;
-        }
-      } catch (err: unknown) {
-        console.error('[Intake] Policy creation/update failed:', err);
+        if (!fileUploadResponse.ok) throw new Error("Failed to upload file");
+        policyDocumentUrl = downloadUrl;
       }
 
+      // 3. Create or Update Business Case ONLY
       let caseIdToRoute = existingCaseId;
 
       if (existingCaseId) {
-        await businessCaseService.updateCase(existingCaseId, { status: "won" });
+        // Update existing case with new extracted data
+        await businessCaseService.updateCase(existingCaseId, { 
+          lob: dbLob as any,
+          payload: {
+            ...productData,
+            selection,
+            pdf_url: policyDocumentUrl,
+            last_updated: new Date().toISOString(),
+            status: "draft_complete"
+          }
+        });
       } else {
+        // Create a new Business Case
         const actionToCaseTypeMap: Record<string, string> = {
           'new_policy': 'policy',
           'renewal': 'renewal',
@@ -543,19 +499,20 @@ export default function IntakeDeskPage() {
            case_number: `BCS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
            customer_id: finalCustomerId,
            case_type: caseType as any,
-           lob: (selection.category as any) || "other",
+           lob: dbLob as any, // FIX: Use dbLob (mapped) instead of selection.category ("commercial")
            status: "open",
            priority: "medium",
            payload: { 
              source: "unified_intake",
              metadata: selection,
              product_data: productData,
+             pdf_url: policyDocumentUrl,
+             needs_review: true,
+             is_draft: true, // Mark as draft so it doesn't appear as a real policy yet
              motor_meta: selection.category === 'motor' ? {
                registration_number: productData.reg_number,
                make: productData.make,
                model: productData.model,
-               chassis_number: productData.chassis_number,
-               engine_number: productData.engine_number,
                ncb_percent: parseInt(productData.ncb_percent || "0") || 0,
                idv_vehicle: parseInt(productData.idv_vehicle || "0") || 0,
                addons: productData.addons || {}
@@ -564,9 +521,12 @@ export default function IntakeDeskPage() {
                plan_name: productData.plan_name,
                sum_assured: parseInt(productData.sum_assured || "0") || 0,
                policy_term: parseInt(productData.policy_term || "0") || 0,
-               risk_start_date: productData.risk_start_date
              } : null,
-             verification_needed: true
+             commercial_meta: selection.category === 'commercial' ? {
+               risk_details: productData.risk_details,
+               occupancy: productData.occupancy,
+               fire_si: parseInt(productData.fire_si || "0") || 0
+             } : null
            },
            created_by: user.id
          });
@@ -575,8 +535,10 @@ export default function IntakeDeskPage() {
       }
 
       void mutate("business-cases");
+      toast.success("Case created successfully - pending review");
       router.push(`/dashboard/business-cases/${caseIdToRoute}`);
     } catch (err: unknown) {
+      console.error('[Intake] Flow execution failed:', err);
       toast.error(err instanceof Error ? err.message : "Execution failed");
     } finally {
       setIsExecuting(false);
