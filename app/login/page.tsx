@@ -278,13 +278,26 @@ function LoginContent() {
             damping: 30,
             mass: 1,
           }}
-          className="absolute inset-0 w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 z-10"
+          className="absolute inset-0 w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8 lg:p-16 z-10"
         >
-          <div className="group relative w-full max-w-md space-y-10 overflow-hidden rounded-[3.5rem] border border-border bg-card/90 p-12 shadow-[0_40px_100px_rgba(0,0,0,0.03)] backdrop-blur-3xl">
+          <div className="group relative w-full max-w-md space-y-8 md:space-y-10 overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem] border border-border bg-card/90 p-8 md:p-12 shadow-[0_40px_100px_rgba(0,0,0,0.03)] backdrop-blur-3xl">
             <div className="absolute top-0 right-0 p-8 h-32 w-32 bg-linear-to-br from-[#5d787a]/5 to-transparent rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
 
+            {/* Mobile Logo (Visible only on small screens) */}
+            <div className="flex lg:hidden items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 backdrop-blur-xl shadow-2xl">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <span className="text-lg font-bold tracking-tight block leading-none">BP&AF</span>
+                <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">
+                  Insurance Brokers
+                </span>
+              </div>
+            </div>
+
             <div className="space-y-3">
-              <h2 className="text-4xl font-bold tracking-tight text-foreground">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                 {portalContent[selectedPortal].title}
               </h2>
               <div className="flex items-center gap-2">
