@@ -61,7 +61,7 @@ function Section({ title, icon: Icon, children }: SectionProps) {
       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary flex items-center gap-2">
         <Icon className="h-3.5 w-3.5" /> {title}
       </h4>
-      <div className="bg-card/40 rounded-[2.5rem] border-2 border-border p-10 space-y-6 shadow-xl">
+      <div className="bg-card/40 rounded-[2rem] md:rounded-[2.5rem] border-2 border-border p-6 md:p-10 space-y-6 shadow-xl">
         {children}
       </div>
     </div>
@@ -80,7 +80,7 @@ interface FieldProps {
 function Field({ label, value, onChange, placeholder, type = "text", grid = "col-span-1" }: FieldProps) {
   return (
     <div className={cn("space-y-1.5", grid)}>
-      <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">{label}</label>
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80 ml-1">{label}</label>
       <Input 
         type={type}
         placeholder={placeholder}

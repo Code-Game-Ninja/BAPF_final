@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   return (
     <motion.div
-      className="max-w-7xl mx-auto space-y-10 pb-20"
+      className="max-w-[1600px] mx-auto space-y-10 pb-20"
       initial={pageTransition.initial}
       animate={pageTransition.animate}
       transition={pageTransition.transition}
@@ -62,7 +62,7 @@ export default function DashboardPage() {
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/80">Operational Intelligence • Live</p>
           </div>
-          <h1 className="text-5xl font-black tracking-tighter text-foreground font-heading leading-tight">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-foreground font-heading leading-tight">
             Workday <span className="text-primary italic opacity-90">Command</span>
           </h1>
           <div className="flex items-center gap-3 mt-1">

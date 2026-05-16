@@ -129,7 +129,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main id="main-content" className="flex-1 px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-7">
-          <div className="mx-auto w-full max-w-375">
+          <div className="mx-auto w-full max-w-[1600px]">
             <Breadcrumbs />
             <ErrorBoundary>
               <motion.div

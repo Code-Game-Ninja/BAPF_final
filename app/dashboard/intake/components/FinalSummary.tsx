@@ -30,8 +30,8 @@ export function FinalSummary({ selection, customer, productData, isCreating, onC
   const complianceAuditId = useMemo(() => Math.random().toString(36).substring(2, 10).toUpperCase(), []);
 
   return (
-    <motion.div {...pageTransition} className="max-w-4xl mx-auto space-y-8">
-      <div className="bg-card/40 rounded-[3rem] border-2 border-border p-12 space-y-12 shadow-2xl relative overflow-hidden">
+    <motion.div {...pageTransition} className="max-w-5xl mx-auto space-y-8">
+      <div className="bg-card/40 rounded-[2rem] md:rounded-[3rem] border-2 border-border p-6 md:p-12 space-y-8 md:space-y-12 shadow-2xl relative overflow-hidden">
         {/* Background Decorative Element */}
         <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -168,16 +168,16 @@ export function FinalSummary({ selection, customer, productData, isCreating, onC
 
 function SummaryDetail({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex justify-between items-center text-[10px]">
-      <span className="font-bold text-muted-foreground uppercase opacity-70 tracking-tighter">{label}</span>
-      <span className="font-black text-foreground uppercase">{value}</span>
+    <div className="flex justify-between items-center text-xs">
+      <span className="font-bold text-muted-foreground uppercase opacity-70 tracking-tighter text-[10px]">{label}</span>
+      <span className="font-black text-foreground uppercase truncate ml-2">{value}</span>
     </div>
   );
 }
 
 function SummaryBadge({ label }: { label: string | number }) {
   return (
-    <span className="px-2 py-1 rounded-lg bg-background/50 border border-border text-[9px] font-black uppercase tracking-tighter shadow-sm text-foreground/70">
+    <span className="px-2 py-1 rounded-lg bg-background/50 border border-border text-[10px] font-black uppercase tracking-tighter shadow-sm text-foreground/70">
       {label}
     </span>
   );
