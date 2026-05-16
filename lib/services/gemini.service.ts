@@ -29,6 +29,18 @@ export interface StructuredPolicyData {
     customerState: string | null;
     customerPincode: string | null;
   };
+  commercialDetails?: {
+    riskDetails: string | null;
+    occupancy: string | null;
+    fireSi: number | null;
+  };
+  motorDetails?: {
+    regNumber: string | null;
+    chassisNumber: string | null;
+    engineNumber: string | null;
+    make: string | null;
+    model: string | null;
+  };
 }
 
 /**
@@ -49,20 +61,33 @@ export async function extractStructuredData(rawText: string): Promise<Structured
     });
 
     const prompt = `
-      You are an expert insurance data assistant specializing in Indian Insurance Policies.
-      Extract structured data from the following raw text extracted via OCR. 
-      
-      RULES:
-      1. Dates MUST be in YYYY-MM-DD format.
-      2. Currency/Numbers MUST be numeric only (no commas, no "Rs").
-      3. If a field is not found, return null.
-      4. Insurer Name should be normalized (e.g., "HDFC ERGO General Insurance Co Ltd" -> "HDFC Ergo").
-      5. Policy Type should be one of: motor, health, life, fire, marine, liability, travel, engineering, car_ear, workmen_compensation, surety_bond.
-      6. Payment Frequency: annual, semi-annual, quarterly, monthly, single.
-      
       RAW TEXT:
       ${rawText.substring(0, 30000)}
       
+      Extract the following fields with high precision:
+      - policyNumber: The unique identification number of the policy.
+      - policyType: Exactly one of [motor, health, life, fire, marine, liability, travel, engineering, car_ear, workmen_compensation, surety_bond].
+      - insurerName: The name of the insurance company (e.g., HDFC Ergo, ICICI Lombard, Star Health).
+      - premium: The total premium amount (numeric only).
+      - sumInsured: The total coverage amount (numeric only).
+      - startDate: Policy inception date (YYYY-MM-DD).
+      - endDate: Policy expiry date (YYYY-MM-DD).
+      
+      CUSTOMER DETAILS:
+      - customerName: The primary insured person or entity name.
+      - customerPhone: Contact number if available.
+      - customerEmail: Email address if available.
+      - customerAddress: Full communication address.
+
+      COMMERCIAL/RISK DETAILS (If applicable):
+      - riskDetails: A concise description of the risk/property (e.g., "Chemical Factory", "Warehouse with Electronics").
+      - occupancy: The type of use for the building/premises.
+      - fireSi: Sum Insured specific to Fire/Terrorism.
+
+      MOTOR DETAILS (If applicable):
+      - regNumber: Registration number of the vehicle.
+      - make/model: Manufacturer and model of the vehicle.
+
       Return a JSON object matching this schema:
       {
         "policyDetails": {
@@ -83,6 +108,16 @@ export async function extractStructuredData(rawText: string): Promise<Structured
           "customerCity": string | null,
           "customerState": string | null,
           "customerPincode": string | null
+        },
+        "commercialDetails": {
+          "riskDetails": string | null,
+          "occupancy": string | null,
+          "fireSi": number | null
+        },
+        "motorDetails": {
+          "regNumber": string | null,
+          "make": string | null,
+          "model": string | null
         }
       }
     `;

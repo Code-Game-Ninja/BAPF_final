@@ -112,7 +112,7 @@ export default function DashboardPage() {
                 <p className="text-[10px] text-muted-foreground font-black tracking-widest uppercase opacity-70">Focus Matrix • Immediate Response</p>
               </div>
            </div>
-           <Link href="/dashboard/tasks" className="p-2.5 rounded-xl bg-card/40 border border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
+           <Link href="/dashboard/service-desk" className="p-2.5 rounded-xl bg-card/40 border border-border/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
               Deep Audit <ArrowRight className="h-3 w-3" />
            </Link>
         </div>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-3 gap-6 px-2 pt-10 border-t border-border/20">
         {[
           { label: "SOP Library", icon: ClipboardCheck, href: "/dashboard/sop", desc: "Internal Process Manuals", color: "blue" },
-          { label: "Service Desk", icon: LifeBuoy, href: "/dashboard/service-tickets", desc: "Claims & Support Request", color: "purple" },
+          { label: "Service Desk", icon: LifeBuoy, href: "/dashboard/service-desk", desc: "Claims & Support Request", color: "purple" },
           { label: "Knowledge Base", icon: FileBox, href: "/dashboard/documents", desc: "Digital Document Repository", color: "amber" },
         ].map((action) => (
           <Link key={action.label} href={action.href}>

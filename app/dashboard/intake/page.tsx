@@ -210,23 +210,33 @@ export default function IntakeDeskPage() {
   // -- Handlers --
   const mapPolicyTypeToCategory = (policyType: string, structuredData?: ExtractionResult['structuredData']): string => {
     const type = policyType?.toLowerCase() || '';
-    if (type.includes('motor') || type.includes('car') || type.includes('vehicle') || type.includes('auto')) return 'motor';
-    if (type.includes('health') || type.includes('medical') || type.includes('medicare')) return 'health';
-    if (type.includes('life') || type.includes('term') || type.includes('endowment') || type.includes('ulip')) return 'life';
-    if (type.includes('fire') || type.includes('marine') || type.includes('engineering') || type.includes('liability') || type.includes('burglary')) return 'commercial';
+    
+    // 1. Explicit keyword checks
+    if (type.includes('motor') || type.includes('car') || type.includes('vehicle') || type.includes('auto') || type.includes('wheeler')) return 'motor';
+    if (type.includes('health') || type.includes('medical') || type.includes('medicare') || type.includes('hospital') || type.includes('travel')) return 'health';
+    if (type.includes('life') || type.includes('term') || type.includes('endowment') || type.includes('ulip') || type.includes('saving')) return 'life';
+    if (
+      type.includes('fire') || 
+      type.includes('marine') || 
+      type.includes('engineering') || 
+      type.includes('liability') || 
+      type.includes('burglary') || 
+      type.includes('commercial') ||
+      type.includes('workmen') ||
+      type.includes('compensation') ||
+      type.includes('car_ear') ||
+      type.includes('surety')
+    ) return 'commercial';
 
+    // 2. Structured Data heuristic
     if (structuredData) {
-      const md = structuredData.motorDetails || {};
-      const ld = structuredData.lifeDetails || {};
-      const hd = structuredData.healthDetails || {};
-      const comd = structuredData.commercialDetails || {};
-
-      if (md.regNumber || md.chassisNumber || md.engineNumber || md.make) return 'motor';
-      if (ld.nomineeName || ld.policyTerm || ld.sumAssured) return 'life';
-      if (hd.healthPolicyType || hd.planName) return 'health';
-      if (comd.riskDetails || comd.occupancy || comd.fireSi) return 'commercial';
+      if (structuredData.motorDetails && Object.keys(structuredData.motorDetails).length > 0) return 'motor';
+      if (structuredData.healthDetails && Object.keys(structuredData.healthDetails).length > 0) return 'health';
+      if (structuredData.lifeDetails && Object.keys(structuredData.lifeDetails).length > 0) return 'life';
+      if (structuredData.commercialDetails && Object.keys(structuredData.commercialDetails).length > 0) return 'commercial';
     }
-    return 'commercial';
+
+    return 'commercial'; // Default fallback
   };
 
   const handleCategorySelect = (id: string) => {
@@ -342,8 +352,12 @@ export default function IntakeDeskPage() {
         phone: cd.customerPhone || prev.phone || "",
         email: cd.customerEmail || prev.email || "",
         reg_number: md.regNumber || prev.reg_number || "",
+        make: md.make || prev.make || "",
+        model: md.model || prev.model || "",
         plan_name: ld.planName || hd.planName || prev.plan_name || "",
         risk_details: comd.riskDetails || prev.risk_details || "",
+        occupancy: comd.occupancy || prev.occupancy || "",
+        fire_si: comd.fireSi ? comd.fireSi.toString() : prev.fire_si || "",
       }));
 
       nextStep();

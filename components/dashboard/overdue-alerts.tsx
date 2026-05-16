@@ -48,7 +48,7 @@ export function OverdueAlerts({ overdue, stats }: OverdueAlertsProps) {
       label: "Pending Claims",
       count: stats?.pendingClaims || 0,
       icon: ShieldAlert,
-      href: "/dashboard/service-desk/claims?status=pending",
+      href: "/dashboard/claims?status=pending",
       color: "text-sky-500",
       bg: "bg-sky-500/10",
       border: "border-sky-500/20"
@@ -58,7 +58,7 @@ export function OverdueAlerts({ overdue, stats }: OverdueAlertsProps) {
       label: "Open Tickets",
       count: stats?.pendingTickets || 0,
       icon: LifeBuoy,
-      href: "/dashboard/service-desk/tickets?status=open",
+      href: "/dashboard/service-desk?status=open",
       color: "text-purple-500",
       bg: "bg-purple-500/10",
       border: "border-purple-500/20"
