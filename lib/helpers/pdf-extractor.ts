@@ -712,29 +712,23 @@ function regexExtract(rawText: string): ExtractedPolicyData {
   function sanitizeName(name: string): string | null {
     if (!name || name.length < 3) return null;
     
-    // Reject if contains policy clause keywords (common in Gemini hallucinations)
-    const clauseKeywords = [
-      'third party', 'liability', 'claims arising', 'acts of god', 'perils',
-      'for third party', 'arising out of', 'subject to', 'provided that',
-      'notwithstanding', 'warranty', 'exclusion', 'condition', 'clause',
-      'insurance', 'policy', 'schedule', 'certificate', 'cover', 'premium',
-      'sum insured', 'period', 'renewal', 'expiry', 'commencement',
-      'made between', 'generation and', 'notice generation',
-    ];
+    // Only reject if the name is ALMOST ENTIRELY made of legal boilerplate
+    // Real names might be next to words like "Policy" or "Renewal"
     const lowerName = name.toLowerCase();
-    for (const keyword of clauseKeywords) {
-      if (lowerName.includes(keyword)) return null;
+    const boilerplateKeywords = [
+      'subject to', 'pursuant to', 'acts of god', 'third party liability',
+      'standard fire and special perils', 'herein mentioned', 'notwithstanding'
+    ];
+    
+    for (const keyword of boilerplateKeywords) {
+      if (lowerName === keyword || (lowerName.includes(keyword) && name.length > 50)) return null;
     }
     
-    // Reject if mostly lowercase (names should be title/uppercase)
-    const uppercaseCount = (name.match(/[A-Z]/g) || []).length;
-    if (uppercaseCount < name.length * 0.3) return null;
+    // Names usually shouldn't be extremely long sentences
+    if (name.split(/\s+/).length > 8) return null;
     
-    // Reject if contains numbers (except Roman numerals in company names)
-    if (/\d/.test(name) && !/\b(?:I|II|III|IV|V|VI|VII|VIII|IX|X)\b/.test(name)) return null;
-    
-    // Reject common non-name words
-    if (/^(insured|name|address|details|the|of|mr|mrs|ms|customer|policy|branch|office|sub|imd)$/i.test(name)) return null;
+    // Reject common non-name words if they are the ONLY word
+    if (/^(insured|name|address|details|the|of|mr|mrs|ms|customer|policy|branch|office|sub|imd)$/i.test(name.trim())) return null;
     
     return name;
   }

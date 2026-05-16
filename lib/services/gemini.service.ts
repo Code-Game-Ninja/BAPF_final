@@ -41,6 +41,12 @@ export interface StructuredPolicyData {
     make: string | null;
     model: string | null;
   };
+  members?: Array<{
+    name: string;
+    dob?: string | null;
+    age?: string | null;
+    relation?: string | null;
+  }>;
 }
 
 /**
@@ -74,9 +80,9 @@ export async function extractStructuredData(rawText: string): Promise<Structured
       - endDate: Policy expiry date (YYYY-MM-DD).
       
       CUSTOMER DETAILS:
-      - customerName: The primary insured person or entity name.
-      - customerPhone: Contact number if available.
-      - customerEmail: Email address if available.
+      - customerName: The primary insured person or entity name. Look for "Proposer Name", "Name of the Insured", or "Customer Name".
+      - customerPhone: Contact number (often 10 digits starting with 6-9).
+      - customerEmail: Email address.
       - customerAddress: Full communication address.
 
       COMMERCIAL/RISK DETAILS (If applicable):
@@ -118,7 +124,13 @@ export async function extractStructuredData(rawText: string): Promise<Structured
           "regNumber": string | null,
           "make": string | null,
           "model": string | null
-        }
+        },
+        "members": Array<{
+          "name": string,
+          "dob": string | null,
+          "age": string | null,
+          "relation": string | null
+        }>
       }
     `;
 

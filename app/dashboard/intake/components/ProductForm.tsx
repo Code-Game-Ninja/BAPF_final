@@ -213,11 +213,56 @@ function LifeFields({ data, onChange }: CategoryFieldsProps) {
 function HealthFields({ data, onChange }: CategoryFieldsProps) {
   return (
     <div className="space-y-12">
-      <Section title="Coverage Scope" icon={Users2}>
+      <Section title="Coverage Scope" icon={ShieldCheck}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Field label="Policy Type" placeholder="Individual / Floater" value={data.health_policy_type} onChange={(v: string) => onChange({health_policy_type: v})} />
           <Field label="Plan Name" value={data.plan_name} onChange={(v: string) => onChange({plan_name: v})} />
           <Field label="Sum Insured" type="number" value={data.sum_assured} onChange={(v: string) => onChange({sum_assured: v})} />
+        </div>
+      </Section>
+
+      <Section title="Insured Members" icon={Users2}>
+        <div className="space-y-4">
+          {(data.members || [{ name: "" }]).map((member, idx) => (
+            <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-2xl bg-muted/30 border border-border">
+              <Field 
+                label="Member Name" 
+                value={member.name} 
+                onChange={(v) => {
+                  const newMembers = [...(data.members || [])];
+                  if (!newMembers[idx]) newMembers[idx] = { name: "" };
+                  newMembers[idx].name = v;
+                  onChange({ members: newMembers });
+                }} 
+                grid="md:col-span-2" 
+              />
+              <Field 
+                label="Relation" 
+                value={member.relation} 
+                onChange={(v) => {
+                  const newMembers = [...(data.members || [])];
+                  newMembers[idx].relation = v;
+                  onChange({ members: newMembers });
+                }} 
+              />
+              <Field 
+                label="DOB / Age" 
+                value={member.dob || member.age} 
+                onChange={(v) => {
+                  const newMembers = [...(data.members || [])];
+                  newMembers[idx].age = v;
+                  onChange({ members: newMembers });
+                }} 
+              />
+            </div>
+          ))}
+          <Button 
+            variant="outline" 
+            className="w-full rounded-xl border-dashed py-6"
+            onClick={() => onChange({ members: [...(data.members || []), { name: "" }] })}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Member
+          </Button>
         </div>
       </Section>
     </div>

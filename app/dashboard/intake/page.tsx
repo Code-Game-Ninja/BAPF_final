@@ -70,11 +70,21 @@ interface ExtractionResult {
 function sanitizeName(value: string | null | undefined): string {
   if (!value || typeof value !== "string") return "";
   const v = value.trim();
-  if (v.length < 2 || v.length > 100) return "";
-  // Reject if it looks like a policy clause sentence
-  if (/\b(arising|liability|claims|perils|excess|deductible|subject|pursuant|herein|thereof|whereas|notwithstanding|third\s*party|acts\s*of\s*god)\b/i.test(v)) return "";
-  // Reject if too many words (names are usually 1-6 words)
-  if (v.split(/\s+/).length > 8) return "";
+  
+  // Basic length check
+  if (v.length < 2 || v.length > 120) return "";
+  
+  // Only block if the string is EXCLUSIVELY legal boilerplate
+  // If it contains a name-like structure, let it through
+  const boilerplateRegex = /\b(subject to|pursuant to|herein mentioned|acts of god|third party liability|standard fire and special perils)\b/i;
+  
+  // If it's a long sentence with lots of small words, it's likely boilerplate, not a name
+  if (v.split(/\s+/).length > 10) return "";
+  
+  // If it matches boilerplate but is short (2-4 words), it might be a company name (e.g. "Third Party Admin")
+  // but usually we want to be careful.
+  if (boilerplateRegex.test(v) && v.length > 50) return "";
+
   return v;
 }
 
@@ -358,6 +368,7 @@ export default function IntakeDeskPage() {
         risk_details: comd.riskDetails || prev.risk_details || "",
         occupancy: comd.occupancy || prev.occupancy || "",
         fire_si: comd.fireSi ? comd.fireSi.toString() : prev.fire_si || "",
+        members: structuredData.members || prev.members || [],
       }));
 
       nextStep();

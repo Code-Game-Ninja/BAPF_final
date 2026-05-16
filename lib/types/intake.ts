@@ -72,6 +72,14 @@ export interface IntakeProductData {
   occupancy?: string;
   fire_si?: string;
 
+  // Family / Group Members
+  members?: Array<{
+    name: string;
+    dob?: string;
+    age?: string;
+    relation?: string;
+  }>;
+
   // Catch-all for any other extracted fields
   [key: string]: any;
 }
