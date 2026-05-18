@@ -750,7 +750,8 @@ export interface Claim extends BaseDocument {
   remarks?: string;
   assigned_to?: string;
   assigned_to_name?: string;
-  created_by: string;
+  created_by?: string;
+  source?: string;
 }
 
 export interface ClaimTimeline extends BaseDocument {

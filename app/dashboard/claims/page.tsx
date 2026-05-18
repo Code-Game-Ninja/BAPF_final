@@ -294,6 +294,7 @@ export default function ClaimsPage() {
                 <TableHead className="font-heading uppercase tracking-wider text-xs">Customer</TableHead>
                 <TableHead className="font-heading uppercase tracking-wider text-xs">Policy #</TableHead>
                 <TableHead className="font-heading uppercase tracking-wider text-xs">Type</TableHead>
+                <TableHead className="font-heading uppercase tracking-wider text-xs">Source</TableHead>
                 <TableHead className="font-heading uppercase tracking-wider text-xs text-right">Amount</TableHead>
                 <TableHead className="font-heading uppercase tracking-wider text-xs text-right">Settled</TableHead>
                 <TableHead className="font-heading uppercase tracking-wider text-xs">Status</TableHead>
@@ -308,6 +309,13 @@ export default function ClaimsPage() {
                   <TableCell className="font-medium">{c.customer_name}</TableCell>
                   <TableCell className="text-muted-foreground text-xs">{c.policy_number || "-"}</TableCell>
                   <TableCell className="capitalize text-muted-foreground">{c.claim_type.replace(/_/g, " ")}</TableCell>
+                  <TableCell>
+                    {c.source === "customer_portal" ? (
+                      <Badge variant="outline" className="border-indigo-500/30 bg-indigo-500/10 text-[10px] text-indigo-700 dark:text-indigo-300">Portal</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-slate-500/30 bg-slate-500/10 text-[10px] text-slate-700 dark:text-slate-300">Internal</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">{formatCurrency(c.claim_amount)}</TableCell>
                   <TableCell className="text-right">{c.settled_amount ? formatCurrency(c.settled_amount) : "-"}</TableCell>
                   <TableCell>
