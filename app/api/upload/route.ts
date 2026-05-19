@@ -61,6 +61,7 @@ const ALLOWED_PATH_PREFIXES = [
   "profiles/",
   "leads/",
   "temp/",
+  "intake-drafts/",
 ];
 
 // ── POST ──────────────────────────────────────────────────────────────────────
@@ -86,6 +87,9 @@ function getBucketAndPath(storagePath: string): { bucket: string; path: string }
     return { bucket: "documents", path: storagePath };
   }
   if (storagePath.startsWith("temp/")) {
+    return { bucket: "documents", path: storagePath };
+  }
+  if (storagePath.startsWith("intake-drafts/")) {
     return { bucket: "documents", path: storagePath };
   }
   // Fallback

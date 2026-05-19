@@ -37,6 +37,7 @@ describe('File Upload API', () => {
         'profiles/',
         'leads/',
         'temp/',
+        'intake-drafts/',
       ];
       // Should accept all
       expect(true).toBe(true);
