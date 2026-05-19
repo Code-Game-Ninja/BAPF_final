@@ -18,7 +18,13 @@ export function createClient() {
     supabaseUrl,
     supabaseAnonKey,
     {
+      cookieOptions: {
+        name: "bapf-admin-session",
+        path: "/",
+        sameSite: "lax",
+      },
       auth: {
+        storageKey: "bapf-admin-session",
         // Prevent orphaned Web Lock warnings from React Strict Mode
         // double-mounting by using a longer timeout with graceful fallback.
         lock:
